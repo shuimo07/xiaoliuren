@@ -80,6 +80,18 @@ All palace data lives in `src/core/palaces.ts` (data-as-config): adjust it for s
 - **Lunar**: `castTime(date, { calendar: 'lunar' })` uses the built-in 1900–2100 compact lunar table (`solarToLunar`; source/scope noted in `src/core/time.ts`). No third-party lunar/date runtime library.
 - **`lateZiShiRollover`** (default `false`): whether 23:00–23:59 counts as the next day with day+1. v0.1 defaults to no rollover; enabling it advances the day (month/year carry handled by `Date`).
 
+## Quick install (one command)
+
+Load the plugin into a DSH profile with the bundled installer:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts\install-dsh.ps1            # web profile, GitHub source
+powershell -ExecutionPolicy Bypass -File scripts\install-dsh.ps1 -Profile headless
+powershell -ExecutionPolicy Bypass -File scripts\install-dsh.ps1 -Source file:C:\path\to\xiaoliuren
+```
+
+The script runs `dsh plugin --profile <p> add <source>` and idempotently appends the `tool-xiaoliuren` insert row to the profile's `cordis.patch.yml`. Restart `dsh web` afterwards.
+
 ## DSH integration (three steps)
 
 ```bash
