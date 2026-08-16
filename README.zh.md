@@ -128,7 +128,7 @@ dsh --profile web --dump-config | grep -i xiaoliuren
 powershell -ExecutionPolicy Bypass -File scripts\install-dsh.ps1
 # 可选：-Profile headless / -Source file:C:\path\to\xiaoliuren / -SkipInstall
 ```
-脚本自动执行 `dsh plugin --profile <p> add <source>`，并把 `tool-xiaoliuren` 插件行幂等地追加到 profile 的 `cordis.patch.yml`。
+脚本自动执行 `dsh plugin --profile <p> add <source>`，并把 `tool-xiaoliuren` 插件行幂等地追加到 profile 的 `cordis.patch.yml`。脚本面向 Windows PowerShell；macOS / Linux 用户按下方「接入 DeepSeek Harness（三步）」手动执行即可（同样必须完全重启）。
 
 ### ③ 网络不稳时的捷径
 - 改用本地源：`dsh plugin --profile web add file:E:\AI\xiaoliuren`（或 `link:`）。

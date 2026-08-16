@@ -95,7 +95,7 @@ The script runs `dsh plugin --profile <p> add <source>` and idempotently appends
 ## Install shortcuts & restart requirement
 
 - **Fully restart `dsh web` (stop the process, then start it again). A browser refresh is NOT enough.** The client-plugin graph is composed and cached at server boot (package metadata is cached per name and never expires); only a restart re-scans installed `package.json` files and serves `/plugins/<pkg>/client.js` for packages declaring `exports["./client"]` + `dsh.client`. The host-side `xiaoliuren` tool loads immediately; the **widget is client-side and needs the restart**. Sessions persist in `~/.dsh/sessions`, so the restart does not lose conversations.
-- **One-command install** (idempotent): `powershell -ExecutionPolicy Bypass -File scripts\install-dsh.ps1` (options: `-Profile`, `-Source file:C:\...`, `-SkipInstall`).
+- **One-command install** (idempotent): `powershell -ExecutionPolicy Bypass -File scripts\install-dsh.ps1` (options: `-Profile`, `-Source file:C:\...`, `-SkipInstall`). The script is Windows PowerShell; macOS/Linux users can follow the three-step manual install below (full restart still required).
 - **Offline / network-fallback shortcut**: `dsh plugin --profile web add file:E:\AI\xiaoliuren`. Git deps pin a commit, so after code updates run `dsh plugin --profile web update dsh-plugin-xiaoliuren` (or reinstall) and restart.
 - **Verify after restart**: host tool via `dsh --profile web --dump-config | grep -i xiaoliuren`; widget via `http://127.0.0.1:3080/plugins/dsh-plugin-xiaoliuren/client.js` → expect 200 (404 = not restarted / not discovered); the boot manifest `window.__DSH_BOOT__` should list `dsh-plugin-xiaoliuren`.
 
