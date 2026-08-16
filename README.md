@@ -92,6 +92,10 @@ powershell -ExecutionPolicy Bypass -File scripts\install-dsh.ps1 -Source file:C:
 
 The script runs `dsh plugin --profile <p> add <source>` and idempotently appends the `tool-xiaoliuren` insert row to the profile's `cordis.patch.yml`. Restart `dsh web` afterwards.
 
+## Widget (client UI)
+
+The package also ships a **browser-side widget**: a small **卦** button in the session header (top-right) that collapses into a dot and expands into a panel — pick **数字 / 时间 / 随机**, type the 事由 (matter), hit **生成**, and get the conclusion-first result card with the disclaimer. It lives in `lib/client.js` and auto-loads once the package is installed and `dsh web` is restarted.
+
 ## DSH integration (three steps)
 
 ```bash
