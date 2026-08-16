@@ -2,6 +2,8 @@
 
 A **Xiao Liu Ren (小六壬)** divination project: cast a reading via **time / numbers / random**, and get a **conclusion-first** plain-language verdict plus the six-palace layout, auspiciousness, five elements, direction, celestial spirit and verse. It works standalone (library + CLI) and also ships as a [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) (DSH) tool plugin (tool name `xiaoliuren`). Every result carries a disclaimer — entertainment/traditional-culture reference only.
 
+▶ **Live demo**: <https://shuimo07.github.io/xiaoliuren/> (GitHub Pages — open it in any browser)
+
 ## Features
 
 - Three casting modes: `time` (solar/lunar), `numbers` (1–3 numbers), `random` (seeded & reproducible)

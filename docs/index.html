@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>小六壬 · 在线占卜演示</title>
+<meta name="description" content="小六壬在线占卜演示：按时间 / 报数 / 随机起卦，结论优先的白话成败结论。DeepSeek Harness 插件 xiaoliuren 的独立网页版。">
+<style>
+  :root {
+    --ink: #1f2328;
+    --ink-2: #59636e;
+    --ink-3: #8c959f;
+    --paper: #fbf7f0;
+    --card: #ffffff;
+    --line: rgba(31, 35, 40, .14);
+    --accent: #b03a2e; /* 朱砂 */
+    --accent-soft: rgba(176, 58, 46, .10);
+    --ok: #1f6f43;
+    --bad: #a83232;
+    --shadow: 0 12px 32px rgba(60, 40, 20, .12);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --ink: #e6e6e6;
+      --ink-2: #b3b3b3;
+      --ink-3: #8a8a8a;
+      --paper: #17181a;
+      --card: #202226;
+      --line: rgba(230, 230, 230, .16);
+      --accent: #e08a7a;
+      --accent-soft: rgba(224, 138, 122, .14);
+      --ok: #7bd49a;
+      --bad: #f09393;
+      --shadow: 0 12px 32px rgba(0, 0, 0, .5);
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    min-height: 100vh;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: "Segoe UI", "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
+    display: flex;
+    justify-content: center;
+    padding: 32px 16px 48px;
+  }
+  .wrap { width: 100%; max-width: 540px; }
+  header { text-align: center; margin-bottom: 22px; }
+  header h1 {
+    margin: 0;
+    font-family: "Noto Serif SC", "Songti SC", "SimSun", serif;
+    font-size: 34px;
+    letter-spacing: 8px;
+    color: var(--accent);
+  }
+  header .sub { display: block; font-size: 13px; letter-spacing: 4px; color: var(--ink-3); margin-top: 6px; }
+  header .tagline { margin: 10px 0 0; font-size: 14px; color: var(--ink-2); }
+  .card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    padding: 20px;
+    box-shadow: var(--shadow);
+  }
+  .tabs { display: flex; gap: 8px; margin-bottom: 14px; }
+  .tabs button {
+    flex: 1;
+    padding: 9px 0;
+    font-size: 14px;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background: transparent;
+    color: var(--ink-2);
+    cursor: pointer;
+    transition: all .12s;
+  }
+  .tabs button.active {
+    border-color: var(--accent);
+    background: var(--accent-soft);
+    color: var(--accent);
+    font-weight: 600;
+  }
+  .nums { display: flex; gap: 8px; margin-bottom: 12px; }
+  .nums.hidden { display: none; }
+  .nums input {
+    flex: 1;
+    min-width: 0;
+    padding: 9px 8px;
+    font-size: 14px;
+    text-align: center;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background: transparent;
+    color: var(--ink);
+  }
+  #question {
+    width: 100%;
+    padding: 10px 12px;
+    font-size: 14px;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background: transparent;
+    color: var(--ink);
+    margin-bottom: 12px;
+  }
+  #go {
+    width: 100%;
+    padding: 11px 0;
+    font-size: 15px;
+    font-weight: 600;
+    border: 0;
+    border-radius: 10px;
+    background: var(--accent);
+    color: #fff;
+    cursor: pointer;
+  }
+  #go:active { transform: translateY(1px); }
+  .error { color: var(--bad); font-size: 13px; margin-top: 10px; min-height: 18px; }
+  .result { margin-top: 14px; }
+  .result .card-inner {
+    border: 1px solid var(--line);
+    border-left: 3px solid var(--accent);
+    border-radius: 12px;
+    padding: 14px 16px;
+    font-size: 14px;
+    line-height: 1.85;
+  }
+  .result h3 { margin: 0 0 8px; font-size: 15px; }
+  .result .verdict { font-size: 16px; font-weight: 700; margin: 6px 0; }
+  .result .meta { color: var(--ink-2); font-size: 13px; }
+  .result .verse { margin-top: 6px; color: var(--ink-2); }
+  .result .ok { color: var(--ok); }
+  .result .bad { color: var(--bad); }
+  .result .trace { color: var(--ink-3); font-size: 12.5px; }
+  .disclaimer { margin-top: 10px; font-size: 12px; color: var(--ink-3); }
+  details.ref { margin-top: 18px; background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 12px 16px; }
+  details.ref summary { cursor: pointer; font-size: 14px; color: var(--ink-2); }
+  details.ref table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 12.5px; }
+  details.ref th, details.ref td { border-bottom: 1px solid var(--line); padding: 6px 4px; text-align: left; }
+  details.ref th { color: var(--ink-3); font-weight: 500; }
+  footer { text-align: center; margin-top: 22px; font-size: 12.5px; color: var(--ink-3); }
+  footer a { color: var(--accent); text-decoration: none; }
+</style>
+</head>
+<body>
+<main class="wrap">
+  <header>
+    <h1>小六壬</h1>
+    <span class="sub">XIAO LIU REN</span>
+    <p class="tagline">时间 · 报数 · 随机三种起卦，结论优先的白话占卜</p>
+  </header>
+
+  <section class="card">
+    <div class="tabs">
+      <button data-mode="numbers">数字</button>
+      <button data-mode="time" class="active">时间</button>
+      <button data-mode="random">随机</button>
+    </div>
+    <div id="numsRow" class="nums hidden">
+      <input inputmode="numeric" placeholder="月" aria-label="月">
+      <input inputmode="numeric" placeholder="日" aria-label="日">
+      <input inputmode="numeric" placeholder="时" aria-label="时">
+    </div>
+    <input id="question" placeholder="所问之事（如：这个项目能否成功，可留空）" autocomplete="off">
+    <button id="go">生成答案</button>
+    <div id="error" class="error"></div>
+    <div id="result" class="result"></div>
+  </section>
+
+  <details class="ref">
+    <summary>六宫速查（传统小六壬）</summary>
+    <table>
+      <thead><tr><th>宫</th><th>吉凶</th><th>五行</th><th>方位</th><th>神煞</th><th>白话结论</th></tr></thead>
+      <tbody>
+        <tr><td>大安</td><td>吉</td><td>木</td><td>东</td><td>青龙</td><td>安稳顺利，成功可能性较高</td></tr>
+        <tr><td>留连</td><td>凶</td><td>水</td><td>南</td><td>玄武</td><td>拖延反复，短期难见结果</td></tr>
+        <tr><td>速喜</td><td>吉</td><td>火</td><td>南</td><td>朱雀</td><td>进展较快，成功在望</td></tr>
+        <tr><td>赤口</td><td>凶</td><td>金</td><td>西</td><td>白虎</td><td>阻力较大，易有口舌是非</td></tr>
+        <tr><td>小吉</td><td>吉</td><td>木</td><td>北</td><td>六合</td><td>大吉，成功可期</td></tr>
+        <tr><td>空亡</td><td>凶</td><td>土</td><td>中</td><td>勾陈</td><td>易落空，难达预期</td></tr>
+      </tbody>
+    </table>
+  </details>
+
+  <footer>
+    <p class="disclaimer">※ 以上为传统民俗文化娱乐参考，不构成任何专业建议。</p>
+    <p><a href="https://github.com/shuimo07/xiaoliuren" target="_blank" rel="noopener">GitHub · shuimo07/xiaoliuren</a> · DeepSeek Harness 插件 + 库 + CLI + 本页</p>
+  </footer>
+</main>
+
+<script>
+(function () {
+  "use strict";
+
+  var PALACES = [
+    { index: 1, name: "大安", auspicious: true, wuxing: "木", direction: "东", shensha: "青龙", verdict: "所问之事大体安稳顺利，成功可能性较高", advice: "按原计划稳步行事，宜早不宜迟", verse: "大安事事昌，求谋在坤方；失物去不远，宅舍保安康。" },
+    { index: 2, name: "留连", auspicious: false, wuxing: "水", direction: "南", shensha: "玄武", verdict: "所问之事易拖延反复，短期难见结果", advice: "暂缓推进，重新审视方案或等时机", verse: "留连事难成，求谋日未明；官事只宜缓，去者未回程。" },
+    { index: 3, name: "速喜", auspicious: true, wuxing: "火", direction: "南", shensha: "朱雀", verdict: "所问之事进展较快，多有助力，成功在望", advice: "抓住时机快速行动，勿错失良机", verse: "速喜喜来临，求财向南行；失物申未午，逢人路上寻。" },
+    { index: 4, name: "赤口", auspicious: false, wuxing: "金", direction: "西", shensha: "白虎", verdict: "所问之事阻力较大，易有口舌是非或争执", advice: "谨言慎行，注意沟通与合同细节", verse: "赤口主口舌，官非切要防；失物急去寻，行人有惊慌。" },
+    { index: 5, name: "小吉", auspicious: true, wuxing: "木", direction: "北", shensha: "六合", verdict: "所问之事大吉，成功可期，诸事顺遂", advice: "宜积极行动，趁势而为", verse: "小吉最吉昌，路上好商量；阴人来报喜，失物在坤方。" },
+    { index: 6, name: "空亡", auspicious: false, wuxing: "土", direction: "中", shensha: "勾陈", verdict: "所问之事易落空或变数大，难达预期", advice: "宜观望、降低预期或重新规划", verse: "空亡事不长，阴人多乖张；求财无利益，行人有灾殃。" }
+  ];
+  var SHICHEN = ["子", "丑", "寅", "卯", "辰", "巳", "午", "未", "申", "酉", "戌", "亥"];
+  var DISCLAIMER = "以上为传统民俗文化娱乐参考，不构成任何专业建议。";
+
+  function mod6(n) { return ((n % 6) + 6) % 6; }
+  function shichenFromHour(h) { return Math.floor(((h + 1) % 24) / 2) + 1; }
+  function shichenName(o) { return SHICHEN[mod6(o - 1)]; }
+  function compute(month, day, hour) {
+    var m = mod6(month - 1), d = mod6(day - 1), h = mod6(hour - 1);
+    var final0 = mod6(m + d + h);
+    return {
+      steps: [
+        { phase: "月", number: month, palace: PALACES[m] },
+        { phase: "日", number: day, palace: PALACES[mod6(m + d)] },
+        { phase: "时", number: hour, palace: PALACES[final0] }
+      ],
+      palace: PALACES[final0]
+    };
+  }
+  function castTime(now) {
+    var d = now || new Date();
+    return compute(d.getMonth() + 1, d.getDate(), shichenFromHour(d.getHours()));
+  }
+  function castNumbers(ns) {
+    var now = new Date();
+    return compute(
+      ns[0] !== undefined ? ns[0] : now.getMonth() + 1,
+      ns[1] !== undefined ? ns[1] : now.getDate(),
+      ns[2] !== undefined ? ns[2] : shichenFromHour(now.getHours())
+    );
+  }
+  function randomInt(min, max) {
+    var span = max - min + 1;
+    if (typeof crypto !== "undefined" && crypto.getRandomValues) {
+      var buf = new Uint32Array(1);
+      crypto.getRandomValues(buf);
+      return min + (buf[0] % span);
+    }
+    return min + Math.floor(Math.random() * span);
+  }
+  function castRandom() { return compute(randomInt(1, 12), randomInt(1, 30), randomInt(1, 12)); }
+
+  // ---- UI ----
+  var mode = "time";
+  var tabs = document.querySelectorAll(".tabs button");
+  var numsRow = document.getElementById("numsRow");
+  var numInputs = numsRow.querySelectorAll("input");
+  var questionEl = document.getElementById("question");
+  var errorEl = document.getElementById("error");
+  var resultEl = document.getElementById("result");
+
+  tabs.forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      mode = btn.dataset.mode;
+      tabs.forEach(function (b) { b.classList.toggle("active", b === btn); });
+      numsRow.classList.toggle("hidden", mode !== "numbers");
+      errorEl.textContent = "";
+      resultEl.innerHTML = "";
+    });
+  });
+
+  function render(res) {
+    var p = res.result;
+    var trace = res.steps.map(function (s) { return s.palace.name + "(" + s.phase + ")"; }).join(" → ");
+    var lines = [];
+    var html = "";
+    html += '<div class="card-inner">';
+    html += "<h3>【小六壬】结果</h3>";
+    if (res.question) html += "<div>所问：" + escapeHtml(res.question) + "</div>";
+    html += "<div>起卦：" + escapeHtml(res.castLine) + "</div>";
+    html += '<div class="trace">掌诀：' + escapeHtml(trace) + "</div>";
+    html += '<div class="verdict ' + (p.auspicious ? "ok" : "bad") + '">' + escapeHtml(p.verdict + " —— " + p.advice) + "</div>";
+    html += '<div class="meta">（' + (p.auspicious ? "吉" : "凶") + "｜" + p.wuxing + "｜" + p.direction + "｜" + p.shensha + "）</div>";
+    html += '<div class="verse">断辞：' + escapeHtml(p.verse) + "</div>";
+    html += '<div class="disclaimer">※ ' + DISCLAIMER + "</div>";
+    html += "</div>";
+    resultEl.innerHTML = html;
+  }
+
+  function escapeHtml(s) {
+    return String(s).replace(/[&<>"']/g, function (c) {
+      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
+    });
+  }
+
+  function generate() {
+    errorEl.textContent = "";
+    resultEl.innerHTML = "";
+    try {
+      var r, castLine = "", now = new Date();
+      if (mode === "numbers") {
+        var filled = [];
+        for (var i = 0; i < numInputs.length; i++) {
+          var v = numInputs[i].value.trim();
+          if (v !== "") filled.push(v);
+        }
+        if (filled.length === 0) throw new Error("请至少输入一个数字");
+        if (filled.length > 3) throw new Error("最多输入 3 个数字");
+        var ns = filled.map(function (x) {
+          var n = Number(x);
+          if (!Number.isInteger(n) || n <= 0) throw new Error("数字必须是正整数");
+          return n;
+        });
+        r = castNumbers(ns);
+        castLine = "报数（" + r.steps[0].number + "·" + r.steps[1].number + "·" + r.steps[2].number + "）→ " + r.palace.name;
+      } else if (mode === "time") {
+        r = castTime(now);
+        castLine = "时间（" + (now.getMonth() + 1) + "月" + now.getDate() + "日 " + shichenName(r.steps[2].number) + "时）→ " + r.palace.name;
+      } else {
+        r = castRandom();
+        castLine = "随机（" + r.steps[0].number + "·" + r.steps[1].number + "·" + r.steps[2].number + "）→ " + r.palace.name;
+      }
+      var q = questionEl.value.trim() || null;
+      render({
+        question: q,
+        castLine: castLine,
+        steps: r.steps,
+        result: {
+          palace: r.palace.name, index: r.palace.index, auspicious: r.palace.auspicious,
+          verdict: r.palace.verdict, advice: r.palace.advice,
+          wuxing: r.palace.wuxing, direction: r.palace.direction, shensha: r.palace.shensha,
+          verse: r.palace.verse
+        }
+      });
+    } catch (e) {
+      errorEl.textContent = e && e.message ? e.message : String(e);
+    }
+  }
+
+  document.getElementById("go").addEventListener("click", generate);
+  questionEl.addEventListener("keydown", function (e) { if (e.key === "Enter") generate(); });
+  numInputs.forEach(function (inp) {
+    inp.addEventListener("keydown", function (e) { if (e.key === "Enter") generate(); });
+  });
+})();
+</script>
+</body>
+</html>

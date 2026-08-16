@@ -2,6 +2,8 @@
 
 一个**小六壬**占卜项目：按「时间 / 报数 / 随机」三种方式起卦，**结论优先**地输出白话成败结论 + 掌诀排盘、吉凶、五行、方位、神煞与断辞；既可独立使用（库 + CLI），也可作为 [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness)（DSH）的工具插件接入（工具名 `xiaoliuren`）。所有结果始终附带免责声明，仅作传统文化娱乐参考。
 
+▶ **在线演示**：<https://shuimo07.github.io/xiaoliuren/>（GitHub Pages，浏览器直接打开即可试玩）
+
 ## 特性
 
 - **三种起卦**：`time`（时间，公历/农历）、`numbers`（报 1–3 个数）、`random`（随机，可复现）
