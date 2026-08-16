@@ -209,7 +209,7 @@ export function apply(ctx, config) {
 
 ### 6.1 位置与形态
 
-- 注册到会话头部 actions Slot：`conversation.session.header.actions`（与官方 `@deepseek-ai/dsh-client-ui-jobs` 同 Slot，其代码是本范式参考）。
+- 注册到会话头部**右侧 utilities Slot**：`conversation.session.header.utilities`（与官方 `@deepseek-ai/dsh-session-log-export` 同 Slot——会话记录按钮所在处；`order` 取**负值**（如 -10）即可排到它左边）。
 - 收起态：28px 圆形小按钮，文字「卦」，`title`/`aria-label`「小六壬占卜」——即"缩成一个小点"。
 - 展开态：按钮下方右对齐弹出面板（`position:absolute; top:calc(100% + 6px); right:0; width:340px; maxWidth:min(400px, calc(100vw - 24px)); maxHeight:min(70vh, 640px); overflowY:auto; z-index:100`，圆角 12px、阴影），跟随 DSH 主题变量（`var(--dsw-*)`，每个都带兜底值，明/暗色自适应）。
 - 关闭：点面板外部（pointerdown + contains 判断）或按 Esc（参考 jobs 的 closeOutside / Escape 实现）。
@@ -252,11 +252,11 @@ window.__ModuleLoader__.load({
     // …React 组件：React.createElement（不用 JSX）…
     var inject = ["slots"];
     function apply(ctx) {
-      ctx.slots.inject("conversation.session.header.actions", function () {
+      ctx.slots.inject("conversation.session.header.utilities", function () {
         return ctx.slots.register({
-          name: "conversation.session.header.actions",
+          name: "conversation.session.header.utilities",
           id: "xiaoliuren",
-          order: 30
+          order: -10
         }, XiaoliurenWidget);
       });
     }
@@ -293,7 +293,7 @@ window.__ModuleLoader__.load({
 - `random.test.ts`：`makeRng({seed})` 可复现；取值范围。
 - `plugin.test.ts`：假 `ctx.tools.register`/`ctx.systemPrompt.section` 捕获定义，断言工具名/参数 schema/输出 schema；三种 mode 各跑 `execute`；`question` 回显；render 含「结论」与免责声明。
 - **client 一致性**：client 内联的纯逻辑（compute/shichen/formatCard 的等价实现）与 `src/core` 结果一致（可把该逻辑抽到共享文件或测试中比对）。
-- **client 结构**：`lib/client.js` 含 `__ModuleLoader__.load`、`exports.apply`、`exports.inject`（含 `"slots"`）、注册到 `conversation.session.header.actions`。
+- **client 结构**：`lib/client.js` 含 `__ModuleLoader__.load`、`exports.apply`、`exports.inject`（含 `"slots"`）、注册到 `conversation.session.header.utilities`。
 
 ## 9. CI `.github/workflows/ci.yml`
 

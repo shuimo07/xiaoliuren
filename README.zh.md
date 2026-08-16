@@ -108,6 +108,8 @@ dsh plugin --profile web add github:shuimo07/xiaoliuren
 dsh --profile web --dump-config | grep -i xiaoliuren
 ```
 
+**界面小部件**：包还带一个浏览器侧小部件——重启后在会话头部右上角（「会话记录」按钮左边）出现一个圆形「卦」按钮，点开可切换 数字 / 时间 / 随机 起卦、输入事由并生成「结论优先」卡片（见 `lib/client.js`，需完全重启 `dsh web` 才加载）。
+
 插件导出 DSH 四元组 `{ name: 'tool-xiaoliuren', inject: ['tools', 'systemPrompt'], Config, apply }`，注册工具 `xiaoliuren`：
 
 - 参数：`mode`（time/numbers/random）、`numbers`、`datetime`、`calendar`、`question`

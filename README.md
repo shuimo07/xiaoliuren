@@ -101,7 +101,7 @@ The script runs `dsh plugin --profile <p> add <source>` and idempotently appends
 
 ## Widget (client UI)
 
-The package also ships a **browser-side widget**: a small **卦** button in the session header (top-right) that collapses into a dot and expands into a panel — pick **数字 / 时间 / 随机**, type the 事由 (matter), hit **生成**, and get the conclusion-first result card with the disclaimer. It lives in `lib/client.js` and auto-loads once the package is installed and `dsh web` is restarted.
+The package also ships a **browser-side widget**: a small **卦** button in the session header's top-right utilities strip (immediately left of the 会话记录 / session-log button) that collapses into a dot and expands into a panel — pick **数字 / 时间 / 随机**, type the 事由 (matter), hit **生成**, and get the conclusion-first result card with the disclaimer. It lives in `lib/client.js` and auto-loads once the package is installed and `dsh web` is restarted.
 
 ## DSH integration (three steps)
 
