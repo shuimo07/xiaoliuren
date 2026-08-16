@@ -57,6 +57,12 @@ if (Test-Path $patchFile) {
 
 # 4. verify + restart reminder
 Write-Host ''
-Write-Host '==> Done. Verify:'
-Write-Host "    dsh --profile $Profile --dump-config | Select-String xiaoliuren"
-Write-Host '    Then restart dsh web - the "xiaoliuren" tool becomes available to the model.'
+Write-Host '==> Done. IMPORTANT - fully restart dsh web:'
+Write-Host '    Stop the dsh web process (Ctrl+C in its terminal), then start it again:'
+Write-Host "        dsh --profile $Profile"
+Write-Host '    A browser refresh is NOT enough: the client-plugin graph is composed and'
+Write-Host '    cached at server boot, so the widget bundle only appears after a restart.'
+Write-Host ''
+Write-Host '    Verify after restart:'
+Write-Host "        dsh --profile $Profile --dump-config | Select-String xiaoliuren"
+Write-Host '        http://127.0.0.1:3080/plugins/dsh-plugin-xiaoliuren/client.js  -> 200 = OK, 404 = restart needed'

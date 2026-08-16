@@ -115,6 +115,30 @@ dsh --profile web --dump-config | grep -i xiaoliuren
 - 渲染：结论优先的文本卡片（含免责声明），由 DSH 工具卡片直接展示
 - 插件配置：`calendar`（solar/lunar，默认 solar）、`randomSource`（crypto/math，默认 crypto）、`disclaimer`（免责声明文案）
 
+## 安装捷径与重启提示（重要）
+
+### ① 完全重启才生效（客户端小部件的关键坑）
+- **必须完全重启 `dsh web` 服务进程**（在运行终端 Ctrl+C 停掉，再重新 `dsh web`）；**只刷新浏览器页面无效**。
+- 原因：DSH 的**客户端插件图谱在服务启动时合成并缓存**（插件包元数据按名缓存、永不过期）。只有重启才会重新扫描已装插件的 `package.json`，把声明了 `exports["./client"]` + `dsh.client` 的包纳入 `/plugins/<包名>/client.js` 路由并注入 `window.__DSH_BOOT__`。
+- host 侧工具（`xiaoliuren` 工具）是即时生效的；**界面小部件属于 client 侧，必须重启**。
+- 会话持久化在 `~/.dsh/sessions`，重启不会丢对话。
+
+### ② 一键安装（幂等）
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts\install-dsh.ps1
+# 可选：-Profile headless / -Source file:C:\path\to\xiaoliuren / -SkipInstall
+```
+脚本自动执行 `dsh plugin --profile <p> add <source>`，并把 `tool-xiaoliuren` 插件行幂等地追加到 profile 的 `cordis.patch.yml`。
+
+### ③ 网络不稳时的捷径
+- 改用本地源：`dsh plugin --profile web add file:E:\AI\xiaoliuren`（或 `link:`）。
+- 已装版本是 git 依赖、**钉住某个 commit**：代码更新后需 `dsh plugin --profile web update dsh-plugin-xiaoliuren`（或重装）再重启。
+
+### ④ 验证捷径（重启后）
+- host 工具：`dsh --profile web --dump-config | Select-String xiaoliuren`
+- client 小部件：浏览器直接访问 `http://127.0.0.1:3080/plugins/dsh-plugin-xiaoliuren/client.js`，**200 = 已生效；404 = 没重启或未被发现**
+- 图谱：查看页面源码中 `window.__DSH_BOOT__` 的 entries 是否包含 `dsh-plugin-xiaoliuren`。
+
 ## 免责声明
 
 本项目及其占卜结果仅供**传统文化娱乐参考**，不构成任何专业建议（法律、医疗、投资、情感等）。请理性看待。

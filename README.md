@@ -92,6 +92,13 @@ powershell -ExecutionPolicy Bypass -File scripts\install-dsh.ps1 -Source file:C:
 
 The script runs `dsh plugin --profile <p> add <source>` and idempotently appends the `tool-xiaoliuren` insert row to the profile's `cordis.patch.yml`. Restart `dsh web` afterwards.
 
+## Install shortcuts & restart requirement
+
+- **Fully restart `dsh web` (stop the process, then start it again). A browser refresh is NOT enough.** The client-plugin graph is composed and cached at server boot (package metadata is cached per name and never expires); only a restart re-scans installed `package.json` files and serves `/plugins/<pkg>/client.js` for packages declaring `exports["./client"]` + `dsh.client`. The host-side `xiaoliuren` tool loads immediately; the **widget is client-side and needs the restart**. Sessions persist in `~/.dsh/sessions`, so the restart does not lose conversations.
+- **One-command install** (idempotent): `powershell -ExecutionPolicy Bypass -File scripts\install-dsh.ps1` (options: `-Profile`, `-Source file:C:\...`, `-SkipInstall`).
+- **Offline / network-fallback shortcut**: `dsh plugin --profile web add file:E:\AI\xiaoliuren`. Git deps pin a commit, so after code updates run `dsh plugin --profile web update dsh-plugin-xiaoliuren` (or reinstall) and restart.
+- **Verify after restart**: host tool via `dsh --profile web --dump-config | grep -i xiaoliuren`; widget via `http://127.0.0.1:3080/plugins/dsh-plugin-xiaoliuren/client.js` → expect 200 (404 = not restarted / not discovered); the boot manifest `window.__DSH_BOOT__` should list `dsh-plugin-xiaoliuren`.
+
 ## Widget (client UI)
 
 The package also ships a **browser-side widget**: a small **卦** button in the session header (top-right) that collapses into a dot and expands into a panel — pick **数字 / 时间 / 随机**, type the 事由 (matter), hit **生成**, and get the conclusion-first result card with the disclaimer. It lives in `lib/client.js` and auto-loads once the package is installed and `dsh web` is restarted.
