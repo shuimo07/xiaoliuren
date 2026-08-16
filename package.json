@@ -1,6 +1,6 @@
 {
   "name": "dsh-plugin-xiaoliuren",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "小六壬占卜：时间 / 报数 / 随机三种起卦，结论优先的白话成败结论 + 掌诀排盘、吉凶、五行、方位、神煞与断辞（DeepSeek Harness 工具插件 + 界面小部件 + 库 + CLI）",
   "keywords": [
     "xiaoliuren",
