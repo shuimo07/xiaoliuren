@@ -12,6 +12,9 @@ coverage/
 .env.*
 !.env.example
 
+# build cache
+*.tsbuildinfo
+
 # OS
 .DS_Store
 Thumbs.db

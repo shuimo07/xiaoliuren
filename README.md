@@ -1,27 +1,104 @@
-# xiaoliuren · 小六壬占卜 + DeepSeek Harness 插件
+# xiaoliuren · Xiao Liu Ren divination (dsh-plugin-xiaoliuren)
 
-一个**小六壬**占卜项目：按「时间 / 报数 / 随机」三种方式起卦，**结论优先**地输出白话成败结论 + 掌诀排盘、吉凶、五行、方位、神煞、断辞；同时提供一个可接入 [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) 的工具插件（工具名 `xiaoliuren`）。
+A **Xiao Liu Ren (小六壬)** divination project: cast a reading via **time / numbers / random**, and get a **conclusion-first** plain-language verdict plus the six-palace layout, auspiciousness, five elements, direction, celestial spirit and verse. It works standalone (library + CLI) and also ships as a [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) (DSH) tool plugin (tool name `xiaoliuren`). Every result carries a disclaimer — entertainment/traditional-culture reference only.
 
-> 当前处于**规格 / 提示词阶段**：代码尚未生成。`PROMPT.md` 即"施工蓝图"。
+## Features
 
-## 用一份 Prompt 生成整个项目
+- Three casting modes: `time` (solar/lunar), `numbers` (1–3 numbers), `random` (seeded & reproducible)
+- **Conclusion-first**: plain-language verdict + advice, then layout details
+- `question` is echoed in the conclusion and never affects the math
+- Configurable: calendar, `lateZiShiRollover`, disclaimer text, random source
+- **Zero-dependency core** (`src/core/` is pure functions; lunar calendar uses a built-in compact table)
+- **Install-and-run**: committed `lib/` output, loaded by DSH via `main: lib/index.js`
 
-`PROMPT.md` 是一份自洽、可直接整段粘贴的 vibe-coding 主提示词：丢给任意编程 AI（Cursor / Claude / DeepSeek / Copilot 等），即可从零生成全部代码——核心算法、DSH 插件、CLI、测试、CI。
+## Build & test
 
-**归属约定**：本项目的一切产出（源码、测试、CI、文档、构建产物）都必须纳入本仓库并随 git 提交/推送，不得散落他处。
+```bash
+pnpm install
+pnpm typecheck
+pnpm test
+pnpm build
+```
 
-## 关键特性（规划）
+Requires Node ≥ 18 (Node 22 recommended) and pnpm.
 
-- 三种起卦：`time`（时间）、`numbers`（报 1–3 个数）、`random`（随机）
-- 结论优先：直接给出「所问之事能否成功」的白话结论（verdict）与建议（advice）
-- 支持 `question` 参数回显所问之事；结果必含免责声明
-- 可配置公历 / 农历、晚子时开关
-- DSH 接入：`dsh plugin --profile web add github:shuimo07/xiaoliuren`
+## Library usage
 
-## 文件
+```ts
+import { castTime, castNumbers, castRandom } from 'dsh-plugin-xiaoliuren'
 
-- `PROMPT.md` — 生成整个项目的主提示词
-- `LICENSE` — MIT
+const r = castNumbers([3, 15, 5])                                  // numbers: month=3, day=15, hour=5
+const r2 = castTime('2024-02-10T12:00:00', { calendar: 'lunar' })  // lunar time casting
+const r3 = castRandom({ randomSource: { seed: 42 } })              // reproducible random
+```
+
+Public API: `castTime`, `castNumbers`, `castRandom`, `compute`, `advance`, `renderSteps`, `getPalace`, `PALACES`, `shichenFromHour`, `shichenName`, `solarToLunar`, `makeRng`, and all types.
+
+## CLI usage
+
+```bash
+xiaoliuren
+xiaoliuren time --datetime 2024-02-10T12:00:00 --question "Will this project succeed?"
+xiaoliuren time --calendar lunar
+xiaoliuren numbers 3 15 5
+xiaoliuren random --seed 42 --json
+```
+
+Invalid input prints a Chinese error and exits non-zero. Default output is the conclusion-first card:
+
+```text
+【小六壬】结果
+所问：Will this project succeed?
+起卦：报数（3·15·5）→ 小吉
+结论：所问之事大吉，成功可期，诸事顺遂 —— 宜积极行动，趁势而为。
+（吉｜木｜北方｜六合）
+※ 以上为传统民俗文化娱乐参考，不构成任何专业建议。
+```
+
+## The six palaces
+
+| # | Palace | Fortune | Element | Direction | Spirit |
+|---|--------|---------|---------|-----------|--------|
+| 1 | 大安 Dà'ān | auspicious | Wood | East | Azure Dragon |
+| 2 | 留连 Liúlián | inauspicious | Water | South | Dark Warrior |
+| 3 | 速喜 Sùxǐ | auspicious | Fire | South | Vermilion Bird |
+| 4 | 赤口 Chìkǒu | inauspicious | Metal | West | White Tiger |
+| 5 | 小吉 Xiǎojí | auspicious | Wood | North | Six Harmony |
+| 6 | 空亡 Kōngwáng | inauspicious | Earth | Center | Gouchen |
+
+All palace data lives in `src/core/palaces.ts` (data-as-config): adjust it for school differences, never the algorithm.
+
+## Math
+
+- Fixed order: 大安(1) → 留连(2) → 速喜(3) → 赤口(4) → 小吉(5) → 空亡(6).
+- Count months from 大安, days from the month result, hours from the day result; each step counts the current palace as 1 and steps (n−1) forward with modulo 6 wrap.
+- Equivalent formula: `finalIndex = ((month + day + hour - 3) % 6) + 1`.
+- Shichen mapping: `ordinal = floor(((hour + 1) % 24) / 2) + 1`, 子1 … 亥12, 23:00 wraps to 子.
+
+## Calendar & late-zi rollover
+
+- **Lunar**: `castTime(date, { calendar: 'lunar' })` uses the built-in 1900–2100 compact lunar table (`solarToLunar`; source/scope noted in `src/core/time.ts`). No third-party lunar/date runtime library.
+- **`lateZiShiRollover`** (default `false`): whether 23:00–23:59 counts as the next day with day+1. v0.1 defaults to no rollover; enabling it advances the day (month/year carry handled by `Date`).
+
+## DSH integration (three steps)
+
+```bash
+dsh plugin --profile web add github:shuimo07/xiaoliuren
+
+# then append to the profile's cordis.patch.yml:
+#   - insert:
+#       - id: xiaoliuren
+#         name: 'dsh-plugin-xiaoliuren'
+#         config: { calendar: solar, randomSource: crypto }
+
+dsh --profile web --dump-config | grep -i xiaoliuren   # verify
+```
+
+The plugin exports `{ name: 'tool-xiaoliuren', inject: ['tools', 'systemPrompt'], Config, apply }` and registers the `xiaoliuren` tool (parameters: `mode`, `numbers`, `datetime`, `calendar`, `question`; output follows the CastResult JSON schema; render is the conclusion-first text card). Plugin config: `calendar` (solar/lunar), `randomSource` (crypto/math), `disclaimer` (text).
+
+## Disclaimer
+
+This project and its readings are for **traditional-culture entertainment only** and do not constitute professional advice of any kind (legal, medical, financial, relationship, etc.).
 
 ## License
 

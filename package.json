@@ -1,0 +1,52 @@
+{
+  "name": "dsh-plugin-xiaoliuren",
+  "version": "0.1.0",
+  "description": "小六壬占卜：时间 / 报数 / 随机三种起卦，结论优先的白话成败结论 + 掌诀排盘、吉凶、五行、方位、神煞与断辞（DeepSeek Harness 工具插件 + 库 + CLI）",
+  "keywords": [
+    "xiaoliuren",
+    "小六壬",
+    "divination",
+    "deepseek-harness",
+    "dsh",
+    "plugin"
+  ],
+  "license": "MIT",
+  "type": "module",
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
+  "bin": {
+    "xiaoliuren": "bin/xiaoliuren.js"
+  },
+  "files": [
+    "bin",
+    "lib",
+    "README.md",
+    "README.zh.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "packageManager": "pnpm@11.22.0",
+  "scripts": {
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "test": "vitest run",
+    "build": "tsc -p tsconfig.build.json"
+  },
+  "dependencies": {
+    "@deepseek-ai/schemastery": "^3.18.1"
+  },
+  "peerDependencies": {
+    "@deepseek-ai/cordis": "^4.0.1",
+    "@deepseek-ai/dsh-tools": "^0.1.0-rc.6",
+    "@deepseek-ai/schemastery": "^3.18.1"
+  },
+  "devDependencies": {
+    "@deepseek-ai/cordis": "^4.0.1",
+    "@deepseek-ai/dsh-tools": "^0.1.0-rc.6",
+    "@deepseek-ai/schemastery": "^3.18.1",
+    "@types/node": "^22.0.0",
+    "typescript": "^5.9.3",
+    "vitest": "^3.2.7"
+  }
+}
