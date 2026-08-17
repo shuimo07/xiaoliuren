@@ -2,11 +2,22 @@ name: CI
 
 on:
   push:
+    branches: [main]
   pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
 
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -15,6 +26,7 @@ jobs:
         uses: pnpm/action-setup@v4
         with:
           version: 11.22.0
+          run_install: false
 
       - name: Setup Node 22
         uses: actions/setup-node@v4
@@ -22,8 +34,10 @@ jobs:
           node-version: 22
           cache: pnpm
 
+      # 严格使用 --frozen-lockfile：锁文件过期会在这里立刻失败，
+      # 而不是被 `|| pnpm install` 兜底悄悄改写（旧配置的失败根源）。
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile || pnpm install
+        run: pnpm install --frozen-lockfile
 
       - name: Typecheck
         run: pnpm typecheck
@@ -34,5 +48,17 @@ jobs:
       - name: Build
         run: pnpm build
 
-      - name: Verify lib/ is in sync with src/
-        run: git diff --exit-code
+      # 本仓库将构建产物 lib/ 与 pnpm-lock.yaml 提交进仓库，
+      # 此步保证二者与 src/、package.json 严格同步，漂移即失败。
+      - name: Verify committed artifacts are in sync
+        run: |
+          if ! git diff --exit-code --quiet; then
+            echo "::error::Working tree is dirty after install/test/build."
+            echo "Likely causes:"
+            echo "  1. src/ 修改后未重新构建并提交 lib/（运行 pnpm build 后提交）"
+            echo "  2. package.json 依赖变更后未更新 pnpm-lock.yaml（运行 pnpm install 后提交）"
+            git status --porcelain
+            git diff --stat
+            exit 1
+          fi
+          echo "lib/ and pnpm-lock.yaml are in sync."
